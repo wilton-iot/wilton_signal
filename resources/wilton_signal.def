@@ -1,0 +1,6 @@
+
+EXPORTS
+    wilton_signal_initialize
+    wilton_signal_await
+    wilton_signal_fire
+    wilton_module_init

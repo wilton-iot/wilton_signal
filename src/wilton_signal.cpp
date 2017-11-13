@@ -16,10 +16,7 @@
 
 namespace { // anonymous
 
-std::atomic<bool>& static_signal_waiter_registered() {
-    static std::atomic<bool> flag{false};
-    return flag;
-}
+std::atomic_bool signal_waiter_registered{false};
 
 } // namespace
 
@@ -28,7 +25,7 @@ char* wilton_signal_initialize() {
     try {
         sl::utils::initialize_signals();
         sl::utils::register_signal_listener([] {
-            if (!static_signal_waiter_registered().load(std::memory_order_acquire)) {
+            if (!signal_waiter_registered.load(std::memory_order_acquire)) {
                 std::abort();
             }
         });
@@ -41,7 +38,8 @@ char* wilton_signal_initialize() {
 char* wilton_signal_await() {
     try {
         bool the_false = false;
-        bool changed = static_signal_waiter_registered().compare_exchange_strong(the_false, true, std::memory_order_acq_rel);
+        bool changed = signal_waiter_registered.compare_exchange_strong(the_false, true,
+                std::memory_order_acq_rel, std::memory_order_relaxed);
         if(!changed) {
             throw wilton::support::exception(TRACEMSG(
                     "Signal waiting thread is already registered"));

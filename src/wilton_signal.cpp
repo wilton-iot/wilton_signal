@@ -27,7 +27,7 @@
 
 #include "staticlib/utils.hpp"
 
-#include "wilton/support/alloc_copy.hpp"
+#include "wilton/support/alloc.hpp"
 #include "wilton/support/exception.hpp"
 
 namespace { // anonymous

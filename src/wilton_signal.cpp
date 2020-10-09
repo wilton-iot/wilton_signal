@@ -42,7 +42,7 @@ char* wilton_signal_initialize() {
         sl::utils::initialize_signals();
         sl::utils::register_signal_listener([] {
             if (!signal_waiter_registered.test_and_set(std::memory_order_acq_rel)) {
-                std::abort();
+                std::exit(130);
             }
         });
         return nullptr;

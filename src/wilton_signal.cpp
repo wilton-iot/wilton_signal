@@ -34,13 +34,19 @@ namespace { // anonymous
 
 std::atomic_flag signal_waiter_registered = ATOMIC_FLAG_INIT;
 
+// called from wilton_signal_initialize
+sl::utils::signal_ctx& static_ctx() {
+    static sl::utils::signal_ctx ctx;
+    return ctx;
+}
+
 } // namespace
 
 // note: sl::utils::initialize_signals() cannot be called directly from another DLL/EXE
 char* wilton_signal_initialize() {
     try {
-        sl::utils::initialize_signals();
-        sl::utils::register_signal_listener([] {
+        sl::utils::initialize_signals(static_ctx());
+        sl::utils::register_signal_listener(static_ctx(), [] {
             if (!signal_waiter_registered.test_and_set(std::memory_order_acq_rel)) {
                 std::exit(130);
             }
@@ -57,7 +63,7 @@ char* wilton_signal_await() {
             throw wilton::support::exception(TRACEMSG(
                     "Signal waiting thread is already registered"));
         }
-        sl::utils::wait_for_signal();
+        sl::utils::wait_for_signal(static_ctx());
         return nullptr;
     } catch (const std::exception& e) {
         return wilton::support::alloc_copy(TRACEMSG(e.what() + "\nException raised"));
@@ -66,7 +72,7 @@ char* wilton_signal_await() {
 
 char* wilton_signal_fire() {
     try {
-        sl::utils::fire_signal();
+        sl::utils::fire_signal(static_ctx());
         return nullptr;
     } catch (const std::exception& e) {
         return wilton::support::alloc_copy(TRACEMSG(e.what() + "\nException raised"));

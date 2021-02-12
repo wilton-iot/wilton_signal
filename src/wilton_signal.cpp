@@ -48,7 +48,11 @@ char* wilton_signal_initialize() {
         sl::utils::initialize_signals(static_ctx());
         sl::utils::register_signal_listener(static_ctx(), [] {
             if (!signal_waiter_registered.test_and_set(std::memory_order_acq_rel)) {
-                std::quick_exit(130);
+#ifdef STATICLIB_WINDOWS
+                std::abort();
+#else // !STATICLIB_WINDOWS
+                ::_Exit(130);
+#endif // STATICLIB_WINDOWS
             }
         });
         return nullptr;
